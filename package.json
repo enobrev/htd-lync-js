@@ -1,0 +1,28 @@
+{
+  "name": "htd-lync",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "test": "vitest",
+    "build": "tsc",
+    "preview": "vite preview",
+    "dev_test": "pnpm dlx vite-node dev/dev.ts"
+  },
+  "keywords": [],
+  "author": "Mark Armendariz <src@enobrev.com>",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^20.14.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.4",
+    "vitest": "^2.0.3"
+  },
+  "dependencies": {
+    "promise-socket": "^8.0.0"
+  }
+}

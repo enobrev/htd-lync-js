@@ -1,0 +1,5 @@
+src/
+.gitignore
+.eslintrc.js
+.prettierrc
+tsconfig.json
