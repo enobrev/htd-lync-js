@@ -20,28 +20,6 @@ export declare const Zone: {
     _12: number;
 };
 export type Zone = (typeof Zone)[keyof typeof Zone];
-export declare const Source: {
-    _01: number;
-    _02: number;
-    _03: number;
-    _04: number;
-    _05: number;
-    _06: number;
-    _07: number;
-    _08: number;
-    _09: number;
-    _10: number;
-    _11: number;
-    _12: number;
-    _13: number;
-    _14: number;
-    _15: number;
-    _16: number;
-    _17: number;
-    _18: number;
-    _19: number;
-};
-export type Source = (typeof Source)[keyof typeof Source];
 export declare const Mode: {
     Repeat: number;
     Control: number;
@@ -49,7 +27,7 @@ export declare const Mode: {
     Id: number;
     Status_Everything: number;
     Zone_Name: number;
-    Source_Name: number;
+    Zone_Input_Name: number;
     Firmware: number;
     Status_Zones: number;
     Volume: number;
@@ -74,10 +52,6 @@ export declare const Func: {
     Zone_Power_Off: number;
     DND_On: number;
     DND_Off: number;
-    Party_Mode_S_13: number;
-    Party_Mode_S_14: number;
-    Party_Mode_S_15: number;
-    Party_Mode_S_16: number;
     On: number;
 };
 export type Func = (typeof Func)[keyof typeof Func];
@@ -102,7 +76,7 @@ export declare const Input: {
     _18: number;
 };
 export type Input = (typeof Input)[keyof typeof Input];
-export declare const PartySource: {
+export declare const PartyInput: {
     _01: number;
     _02: number;
     _03: number;
@@ -122,7 +96,7 @@ export declare const PartySource: {
     _17: number;
     _18: number;
 };
-export type PartySource = (typeof PartySource)[keyof typeof PartySource];
+export type PartyInput = (typeof PartyInput)[keyof typeof PartyInput];
 export declare const MP3_Action: {
     readonly Null: 0;
     readonly Back: 1;
@@ -135,15 +109,15 @@ export declare const MP3_Action: {
 };
 export type MP3_Action = (typeof MP3_Action)[keyof typeof MP3_Action];
 type CommandProps = {
-    zone?: Zone | Source;
+    zone?: Zone;
     mode?: Mode;
     func?: Func;
 };
 export default class Command {
     is_volume: IsVolume;
-    zone: Zone | Source;
+    zone: Zone;
     mode: Mode;
-    func: Func | Input | PartySource | number;
+    func: Func | Input | PartyInput | number;
     constructor({ zone, mode, func }: CommandProps);
     get_command(): Buffer;
     static add_checksum(command: Buffer): Buffer;
@@ -155,8 +129,9 @@ export default class Command {
     static get_status_everything(): Command;
     static get_status_all_zones(): Command;
     static get_info_all_zones(): Command;
+    static set_party_mode(zone: Zone, func: PartyInput): Command;
     static get_zone_name(zone: Zone): Command;
-    static get_zone_source_name(zone: Zone, source: number): Command;
+    static get_zone_input_name(zone: Zone, func: Input): Command;
     static set_power(on: boolean): Command;
     static set_zone_power(zone: Zone, on: boolean): Command;
     static set_volume(zone: Zone, _volume: number): Command;
@@ -166,7 +141,6 @@ export default class Command {
     static set_balance(zone: Zone, _balance: number): Command;
     static set_treble(zone: Zone, _treble: number): Command;
     static set_bass(zone: Zone, _bass: number): Command;
-    static set_source(zone: Zone, func: Source): Command;
     static mp3_action(action: MP3_Action): Command;
 }
 export {};

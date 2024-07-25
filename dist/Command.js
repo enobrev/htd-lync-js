@@ -20,27 +20,6 @@ export const Zone = {
     _11: 0x0B,
     _12: 0x0C
 };
-export const Source = {
-    _01: 0x10,
-    _02: 0x11,
-    _03: 0x12,
-    _04: 0x13,
-    _05: 0x14,
-    _06: 0x15,
-    _07: 0x16,
-    _08: 0x17,
-    _09: 0x18,
-    _10: 0x19,
-    _11: 0x1A,
-    _12: 0x1B,
-    _13: 0x63,
-    _14: 0x64,
-    _15: 0x65,
-    _16: 0x66,
-    _17: 0x67,
-    _18: 0x68,
-    _19: 0x7E
-};
 export const Mode = {
     Repeat: 0x01,
     Control: 0x04,
@@ -48,7 +27,7 @@ export const Mode = {
     Id: 0x08,
     Status_Everything: 0x0C,
     Zone_Name: 0x0D,
-    Source_Name: 0x0E,
+    Zone_Input_Name: 0x0E,
     Firmware: 0x0F,
     Status_Zones: 0x11,
     Volume: 0x15,
@@ -72,10 +51,6 @@ export const Func = {
     Zone_Power_Off: 0x58,
     DND_On: 0x59,
     DND_Off: 0x5A,
-    Party_Mode_S_13: 0x69,
-    Party_Mode_S_14: 0x6A,
-    Party_Mode_S_15: 0x6B,
-    Party_Mode_S_16: 0x6C,
     On: 0xFF
 };
 export const Input = {
@@ -98,7 +73,7 @@ export const Input = {
     _17: 0x67,
     _18: 0x68
 };
-export const PartySource = {
+export const PartyInput = {
     _01: 0x36,
     _02: 0x37,
     _03: 0x38,
@@ -169,10 +144,6 @@ export default class Command {
         const func = on ? Func.On : Func.Off;
         return new Command({ mode: Mode.Echo, func });
     }
-    //
-    // static get_model(): Command {
-    //     return new Command({command: Command.Model});
-    // }
     static get_id() {
         return new Command({ mode: Mode.Id });
     }
@@ -188,12 +159,14 @@ export default class Command {
     static get_info_all_zones() {
         return new Command({ mode: Mode.Status_Zones });
     }
+    static set_party_mode(zone, func) {
+        return new Command({ mode: Mode.Control, zone, func });
+    }
     static get_zone_name(zone) {
         return new Command({ mode: Mode.Zone_Name, zone });
     }
-    static get_zone_source_name(zone, source) {
-        const func = source - 1;
-        return new Command({ mode: Mode.Source_Name, zone, func });
+    static get_zone_input_name(zone, func) {
+        return new Command({ mode: Mode.Zone_Input_Name, zone, func });
     }
     static set_power(on) {
         const func = on ? Func.All_Power_On : Func.All_Power_Off;
@@ -209,7 +182,6 @@ export default class Command {
         const volume = Lookup.valid_volume(_volume);
         // For volume command, level 60 is 0x00, 59 is 0xFF, and 0 is 0xC4
         const func = (volume + 0x0C4) & 0x0FF;
-        console.log(`Volume controller: ${zone}, ${func}`);
         return new Command({ mode: Mode.Volume, zone, func });
     }
     static set_mute(zone, on) {
@@ -236,12 +208,7 @@ export default class Command {
     static set_bass(zone, _bass) {
         const bass = Lookup.valid_tone(_bass);
         const func = Lookup.signed_dec_to_hex(bass);
-        const command = new Command({ mode: Mode.Bass, zone, func });
-        console.log('SET BASS', command.get_command());
-        return command;
-    }
-    static set_source(zone, func) {
-        return new Command({ mode: Mode.Control, zone, func });
+        return new Command({ mode: Mode.Bass, zone, func });
     }
     static mp3_action(action) {
         switch (action) {

@@ -1,6 +1,6 @@
 import Lookup from "./Lookup";
 
-// Command: Header, IsVolume, Zone|Source, Mode, Function, Checksum
+// Command: Header, IsVolume, Zone, Mode, Func|PartyInput, Checksum
 
 export const Header   = 0x02;
 export const IsVolume = {
@@ -25,29 +25,6 @@ export const Zone = {
 }
 export type Zone = (typeof Zone)[keyof typeof Zone];
 
-export const Source = {
-    _01:  0x10,
-    _02:  0x11,
-    _03:  0x12,
-    _04:  0x13,
-    _05:  0x14,
-    _06:  0x15,
-    _07:  0x16,
-    _08:  0x17,
-    _09:  0x18,
-    _10:  0x19,
-    _11:  0x1A,
-    _12:  0x1B,
-    _13:  0x63,
-    _14:  0x64,
-    _15:  0x65,
-    _16:  0x66,
-    _17:  0x67,
-    _18:  0x68,
-    _19:  0x7E
-}
-export type Source = (typeof Source)[keyof typeof Source];
-
 export const Mode = {
     Repeat:             0x01,
     Control:            0x04,
@@ -55,7 +32,7 @@ export const Mode = {
     Id:                 0x08,
     Status_Everything:  0x0C,
     Zone_Name:          0x0D,
-    Source_Name:        0x0E,
+    Zone_Input_Name:    0x0E,
     Firmware:           0x0F,
     Status_Zones:       0x11,
     Volume:             0x15,
@@ -65,7 +42,6 @@ export const Mode = {
     Echo:               0x19,
 }
 export type Mode = (typeof Mode)[keyof typeof Mode];
-
 
 export const Func = {
     Off:                0x00,
@@ -82,10 +58,6 @@ export const Func = {
     Zone_Power_Off:     0x58,
     DND_On:             0x59,
     DND_Off:            0x5A,
-    Party_Mode_S_13:    0x69,
-    Party_Mode_S_14:    0x6A,
-    Party_Mode_S_15:    0x6B,
-    Party_Mode_S_16:    0x6C,
     On:                 0xFF
 }
 export type Func = (typeof Func)[keyof typeof Func];
@@ -112,7 +84,7 @@ export const Input = {
 }
 export type Input = (typeof Input)[keyof typeof Input];
 
-export const PartySource = {
+export const PartyInput = {
     _01:  0x36,
     _02:  0x37,
     _03:  0x38,
@@ -132,8 +104,7 @@ export const PartySource = {
     _17:  0x6D,
     _18:  0x6E
 }
-export type PartySource = (typeof PartySource)[keyof typeof PartySource];
-
+export type PartyInput = (typeof PartyInput)[keyof typeof PartyInput];
 
 export const MP3_Action = {
     Null:       0,
@@ -149,16 +120,16 @@ export const MP3_Action = {
 export type MP3_Action = (typeof MP3_Action)[keyof typeof MP3_Action];
 
 type CommandProps = {
-    zone?: Zone | Source;
+    zone?: Zone;
     mode?: Mode
     func?: Func
 }
 
 export default class Command {
     is_volume: IsVolume
-    zone: Zone | Source;
+    zone: Zone;
     mode: Mode
-    func: Func | Input | PartySource | number
+    func: Func | Input | PartyInput | number
 
     constructor({zone = Zone.None, mode = Mode.Control, func = Func.Off}: CommandProps) {
         this.is_volume = mode === Mode.Volume ? IsVolume.Yes : IsVolume.No;
@@ -203,10 +174,6 @@ export default class Command {
 
         return new Command({mode: Mode.Echo, func});
     }
-    //
-    // static get_model(): Command {
-    //     return new Command({command: Command.Model});
-    // }
 
     static get_id(): Command {
         return new Command({mode: Mode.Id});
@@ -228,13 +195,18 @@ export default class Command {
         return new Command({mode: Mode.Status_Zones});
     }
 
+    // Lync12 v2 Documentation is wrong for setting party mode.  They have the zone bits set, and the zone should be zero
+    // And because of that the checksumes are also incorrect
+    static set_party_mode(func: PartyInput): Command {
+        return new Command({mode: Mode.Control, func});
+    }
+
     static get_zone_name(zone: Zone): Command {
         return new Command({mode: Mode.Zone_Name, zone});
     }
 
-    static get_zone_source_name(zone: Zone, source: number): Command {
-        const func = source - 1;
-        return new Command({mode: Mode.Source_Name, zone, func});
+    static get_zone_input_name(zone: Zone, func: Input): Command {
+        return new Command({mode: Mode.Zone_Input_Name, zone, func});
     }
 
     static set_power(on: boolean): Command {
@@ -254,8 +226,6 @@ export default class Command {
 
         // For volume command, level 60 is 0x00, 59 is 0xFF, and 0 is 0xC4
         const func = (volume + 0x0C4) & 0x0FF as Func;
-
-        console.log(`Volume controller: ${zone}, ${func}`);
 
         return new Command({mode: Mode.Volume, zone, func});
     }
@@ -293,13 +263,7 @@ export default class Command {
         const bass = Lookup.valid_tone(_bass);
         const func = Lookup.signed_dec_to_hex(bass);
 
-        const command = new Command({mode: Mode.Bass, zone, func});
-        console.log('SET BASS', command.get_command())
-        return command;
-    }
-
-    static set_source(zone: Zone, func: Source): Command {
-        return new Command({mode: Mode.Control, zone, func});
+        return new Command({mode: Mode.Bass, zone, func});
     }
 
     static mp3_action(action: MP3_Action): Command {

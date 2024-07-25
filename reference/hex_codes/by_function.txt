@@ -271,24 +271,24 @@ Mute On Zone 9			          \x02\x00\x09\x04\x1E\x2D
 Mute On Zone 10			          \x02\x00\x0A\x04\x1E\x2E
 Mute On Zone 11			          \x02\x00\x0B\x04\x1E\x2F
 Mute On Zone 12			          \x02\x00\x0C\x04\x1E\x30
-Party Mode Source 1		          \x02\x00\x01\x04\x36\x3D
-Party Mode Source 2		          \x02\x00\x02\x04\x37\x3F
-Party Mode Source 3		          \x02\x00\x03\x04\x38\x41
-Party Mode Source 4		          \x02\x00\x04\x04\x39\x43
-Party Mode Source 5		          \x02\x00\x05\x04\x3A\x45
-Party Mode Source 6		          \x02\x00\x06\x04\x3B\x47
-Party Mode Source 7		          \x02\x00\x07\x04\x3C\x49
-Party Mode Source 8		          \x02\x00\x08\x04\x3D\x4B
-Party Mode Source 9		          \x02\x00\x09\x04\x3E\x4D
-Party Mode Source 10	          \x02\x00\x0A\x04\x3F\x4F
-Party Mode Source 11	          \x02\x00\x0B\x04\x40\x51
-Party Mode Source 12	          \x02\x00\x0C\x04\x41\x53
-Party Mode Source 13	          \x02\x00\x0D\x04\x69\x7C
-Party Mode Source 14	          \x02\x00\x0E\x04\x6A\x7E
-Party Mode Source 15	          \x02\x00\x0F\x04\x6B\x80
-Party Mode Source 16	          \x02\x00\x10\x04\x6C\x82
-Party Mode Source 17	          \x02\x00\x10\x04\x6D\x83
-Party Mode Source 18	          \x02\x00\x10\x04\x6E\x84
+Party Mode Source 1		          \x02\x00\x00\x04\x36\x3D  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 2		          \x02\x00\x00\x04\x37\x3F  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 3		          \x02\x00\x00\x04\x38\x41  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 4		          \x02\x00\x00\x04\x39\x43  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 5		          \x02\x00\x00\x04\x3A\x45  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 6		          \x02\x00\x00\x04\x3B\x47  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 7		          \x02\x00\x00\x04\x3C\x49  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 8		          \x02\x00\x00\x04\x3D\x4B  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 9		          \x02\x00\x00\x04\x3E\x4D  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 10	          \x02\x00\x00\x04\x3F\x4F  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 11	          \x02\x00\x00\x04\x40\x51  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 12	          \x02\x00\x00\x04\x41\x53  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 13	          \x02\x00\x00\x04\x69\x7C  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 14	          \x02\x00\x00\x04\x6A\x7E  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 15	          \x02\x00\x00\x04\x6B\x80  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 16	          \x02\x00\x00\x04\x6C\x82  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 17	          \x02\x00\x00\x04\x6D\x83  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
+Party Mode Source 18	          \x02\x00\x00\x04\x6E\x84  // Docs were wrong (they had the zone number set - setting a zone only sets the input for that zone)
 Power Off Zone 1		          \x02\x00\x01\x04\x58\x5F
 Power Off Zone 2		          \x02\x00\x02\x04\x58\x60
 Power Off Zone 3		          \x02\x00\x03\x04\x58\x61

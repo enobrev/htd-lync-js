@@ -2,6 +2,7 @@ import { promisify } from 'util';
 import Connector from "../dist/Connector";
 import Command, {Header, Input, Mode, MP3_Action, Source, Zone} from "../dist/Command";
 import {LyncResponse} from "../dist/";
+import {PartyInput} from "../src";
 
 const ZONE_MALCOLM = 4;
 const ZONE_DINING_ROOM = Zone._06;
@@ -10,7 +11,6 @@ const INPUT_MARK = Input._13;
 const INPUT_LAUREN = Input._14;
 
 const sleep = promisify(setTimeout);
-
 
 const LC = new Connector('10.0.0.25', 10006);
 LC.events.on('data', (response: LyncResponse) => {
@@ -21,7 +21,8 @@ console.dir(response, { depth: null })
 await LC.send_command(Command.set_echo_mode(true));
 
 await LC.send_command(Command.get_id());
-await LC.send_command(Command.get_status_everything());
+await LC.send_command(Command.set_party_mode(Zone.None, PartyInput._13));
+// await LC.send_command(Command.get_status_everything());
 // await LC.send_command(Command.mp3_action(MP3_Action.Repeat_On));
 // await LC.send_command(Command.mp3_action(MP3_Action.Shuffle));
 // await LC.send_command(Command.mp3_action(MP3_Action.Stop));
