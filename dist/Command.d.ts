@@ -129,7 +129,7 @@ export default class Command {
     static get_status_everything(): Command;
     static get_status_all_zones(): Command;
     static get_info_all_zones(): Command;
-    static set_party_mode(zone: Zone, func: PartyInput): Command;
+    static set_party_mode(func: PartyInput): Command;
     static get_zone_name(zone: Zone): Command;
     static get_zone_input_name(zone: Zone, func: Input): Command;
     static set_power(on: boolean): Command;

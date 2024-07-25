@@ -1,5 +1,5 @@
 import Lookup from "./Lookup";
-// Command: Header, IsVolume, Zone|Source, Mode, Function, Checksum
+// Command: Header, IsVolume, Zone, Mode, Func|PartyInput, Checksum
 export const Header = 0x02;
 export const IsVolume = {
     No: 0x00,
@@ -159,8 +159,10 @@ export default class Command {
     static get_info_all_zones() {
         return new Command({ mode: Mode.Status_Zones });
     }
-    static set_party_mode(zone, func) {
-        return new Command({ mode: Mode.Control, zone, func });
+    // Lync12 v2 Documentation is wrong for setting party mode.  They have the zone bits set, and the zone should be zero
+    // And because of that the checksumes are also incorrect
+    static set_party_mode(func) {
+        return new Command({ mode: Mode.Control, func });
     }
     static get_zone_name(zone) {
         return new Command({ mode: Mode.Zone_Name, zone });
