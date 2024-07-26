@@ -58,12 +58,29 @@ await LC.send_command(Command.set_source(zone, source));
 ## MP3 Repeat
 
 As far as I can tell, the only way to figure out if the MP3 player is set to repeat is to get a zone status.  There
-is no event given by the server that the repeat status has changed
+is no event given by the server that the repeat status has changed.
+
+I'm wondering if it might even make sense to power a zone off and on when changing the repeat status, just to ensure
+the server sends an update to all clients.  Probably best to just communicate between the clients at that point.
 
 ## MP3 Play Status
 
-I cannot yet find a way to determin whether an MP3 is playing upon load.  If You Play or FF or Rewind, then the clients
+I cannot yet find a way to determine whether an MP3 is playing upon load.  If You Play or FF or Rewind, then the clients
 get a notification of the new filename and artist, but there's nothing apparent for grabbing the mp3 player's current
 player status
 
+There's also no message sent out to clients when the MP3 is stopped.  But once stopped, if I send a Play command, the 
+file and artist are returned
+
 I have _no idea_ when the MP3 End, MP3 On and MP3 Off events occur.  I have not been able to trigger them.
+
+## Echo Mode
+
+I haven't tested "echo mode" thoroughly, but I have found that if it's off, then MP3 new track events are emitted
+but if I cycle the power of a zone, no events are emitted. 
+
+## TODO: IsVolume Bit
+
+According to the documentation, if you are changing the volume, the second bit in a command should be `0x01`, but in 
+my tests, setting it to `0x00` like all other commands works just fine.  There's no discernable difference between
+setting the second bit to `0x00` or `0x01` for setting volume, or any other command, really
