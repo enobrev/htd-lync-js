@@ -189,8 +189,8 @@ export default class Parser {
                     // Un-handled, so skip it
                     default:
                         if (remaining_length > 2) {
-                            console.log('Unknown response received', remaining_length);
-                            console.log(data.subarray(offset));
+                            console.warn('Unknown response received', remaining_length);
+                            console.warn(data.subarray(offset));
                         }
                         break;
                 }
@@ -466,14 +466,14 @@ export default class Parser {
             type: Response_Code.Zone_Name,
             zone: {
                 number: data.readUInt8(15),
-                name: data.toString('utf8', 4, 14).split("\0").shift() || '' // null terminated string
+                name: data.subarray(4, data.length - 2).toString('utf-8').trim() || '' // start after header, end before space and checksum
             }
         }]
     }
 
     private static unhandled = (data: Buffer): [Response_Unhandled] => {
         const unhandled = data.toString('utf-8');
-        console.log('Unhandled', unhandled);
+        console.warn('Unhandled', unhandled);
 
         return [{
             type: Response_Code.Unhandled,
