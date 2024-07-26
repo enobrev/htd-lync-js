@@ -213,6 +213,9 @@ export default class Parser {
             responses = responses.concat(this.handle_packet(data));
         });
 
+        // console.log('responses');
+        // console.dir(responses, {depth: null})
+
         return responses;
     }
 

@@ -87,7 +87,7 @@ export default class Connector {
         }
 
         try {
-            // console.log('Send Buffer', buffer);
+            // console.log('send_buffer', buffer);
             await this.ps.write(buffer);
         } catch (error) {
             this.events.emit('socket:error', error as Error);
