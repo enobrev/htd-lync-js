@@ -19,3 +19,12 @@ I used the `by_function` file to generate my tests for documented commands
 | by_code and by_decimal | Moved the code to the left column and then sorted           |
 | other                  | Has other commands that were not in the docs                |
 
+
+# And the PDFs?
+
+I grabbed those from [this repo](https://github.com/UngluedChalice/HTD-Lync-RS232-Serial-Feedback-Query-Codes), where 
+they said "I emailed HTD frustrated with the lack of integrations with Home Assisstant and they emailed me back all this
+info. I have no clue what any of it means."
+
+I put most of this app together by decompiling their app and looking at other sources and sending random commands
+to my own Lync.  These docs helped fill in some gaps.
