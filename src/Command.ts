@@ -188,11 +188,11 @@ export default class Command {
     }
 
     static get_status_all_zones(): Command {
-        return new Command({mode: Mode.Info_Zones});
+        return new Command({mode: Mode.Status_Zones});
     }
 
     static get_info_all_zones(): Command {
-        return new Command({mode: Mode.Status_Zones});
+        return new Command({mode: Mode.Info_Zones});
     }
 
     // Lync12 v2 Documentation is wrong for setting party mode.  They have the zone bits set, and the zone should be zero
