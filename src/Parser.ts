@@ -403,7 +403,7 @@ export default class Parser {
             type: Response_Code.MP3_Off,
             mp3: {
                 status: 'off',
-                data: data.subarray(4, data.length - 2).toString('utf8') || ''  // start after header, end before space and checksum
+                data: data.subarray(4, data.length - 2).toString('utf8').trim() || ''  // start after header, end before space and checksum
             }
         }]
     }
@@ -412,7 +412,7 @@ export default class Parser {
         let file = '';
 
         try {
-            file = data.subarray(4, data.length - 2).toString('utf-8') || '' // start after header, end before space and checksum
+            file = data.subarray(4, data.length - 2).toString('utf-8').trim() || '' // start after header, end before space and checksum
         } catch (e) {
             console.error(e);
         }
@@ -429,7 +429,7 @@ export default class Parser {
         let artist = '';
 
         try {
-            artist = data.subarray(4, data.length - 2).toString('utf-8') || '' // start after header, end before space and checksum
+            artist = data.subarray(4, data.length - 2).toString('utf-8').trim() || '' // start after header, end before space and checksum
         } catch (e) {
             console.error(e);
         }
@@ -446,7 +446,7 @@ export default class Parser {
         let name = '';
 
         try {
-            name = data.toString('utf8', 4, 14).split("\0").shift() || ''  // null terminated string
+            name = data.subarray(4, data.length - 2).toString('utf-8').trim() || '' // start after header, end before space and checksum
         } catch (e) {
             console.error(e);
         }
