@@ -30,17 +30,20 @@ export default class Connector {
             case Response_Code.Id:
                 this.events.emit('id', response);
                 break;
-            case Response_Code.Status:
-                this.events.emit('status', response);
-                break;
             case Response_Code.Exist:
                 this.events.emit('exist', response);
+                break;
+            case Response_Code.Status:
+                this.events.emit('status', response);
                 break;
             case Response_Code.Source_Name:
                 this.events.emit('source_name', response);
                 break;
             case Response_Code.Zone_Name:
                 this.events.emit('zone_name', response);
+                break;
+            case Response_Code.MP3_Repeat:
+                this.events.emit('mp3:repeat', response);
                 break;
             case Response_Code.MP3_End:
                 this.events.emit('mp3:end', response);

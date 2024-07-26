@@ -2,6 +2,7 @@ import Command from "./Command";
 import Lookup from "./Lookup";
 export const Response_Code = {
     Unhandled: 0x00, // Made-Up
+    MP3_Repeat: 0x01, // Made Up
     Error: 0x1B,
     Status: 0x05,
     Exist: 0x06,
@@ -105,9 +106,14 @@ export default class Parser {
             }
             offset += command_length;
         }
-        return packets.map(Parser.handle_packet);
+        let responses = [];
+        packets.forEach((data) => {
+            responses = responses.concat(this.handle_packet(data));
+        });
+        return responses;
     }
     static handle_packet = (data) => {
+        // console.log('handle_packet', data);
         if (data[0] === Response_Code.Id) {
             return Parser.handle_id(data);
         }
@@ -127,32 +133,67 @@ export default class Parser {
         }
     };
     static handle_id = (data) => {
-        return {
-            type: Response_Code.Id,
-            id: data.subarray().toString('utf-8') || ''
-        };
+        return [{
+                type: Response_Code.Id,
+                id: data.subarray().toString('utf-8') || ''
+            }];
     };
     static handle_error = (data) => {
-        return {
-            type: Response_Code.Error,
-            error: data.readUInt8(4)
-        };
+        return [{
+                type: Response_Code.Error,
+                error: data.readUInt8(4)
+            }];
     };
     static handle_status = (data) => {
-        return {
-            type: Response_Code.Status,
-            zone: {
-                number: data[2],
+        const debug = {
+            header: data[0],
+            ignore: data[1],
+            zone: data[2],
+            mode: data[3],
+            settings: {
                 power: !!(data[4] & 0x01 << 0),
                 mute: !!(data[4] & 0x01 << 1),
                 dnd: !!(data[4] & 0x01 << 2),
-                source: (data.readUInt8(8) + 1),
-                volume: (data[9] === 0x00) ? 60 : (data.readUInt8(9) - 0xC4),
-                treble: Lookup.hex_to_signed_dec(data[10]),
-                bass: Lookup.hex_to_signed_dec(data[11]),
-                balance: Lookup.hex_to_signed_dec(data[12])
-            }
+            },
+            unknown_5: {
+                value: data[5],
+                hex: data[5].toString(16),
+                binary: data[5].toString(2)
+            },
+            mp3_repeat: !!(data[6] & 0x10),
+            unknown_7: {
+                value: data[7],
+                hex: data[7].toString(16),
+                binary: data[7].toString(2)
+            },
+            source: (data.readUInt8(8) + 1),
+            volume: (data[9] === 0x00) ? 60 : (data.readUInt8(9) - 0xC4),
+            treble: Lookup.hex_to_signed_dec(data[10]),
+            bass: Lookup.hex_to_signed_dec(data[11]),
+            balance: Lookup.hex_to_signed_dec(data[12]),
+            checksum: data[13],
         };
+        // console.log('Status', debug);
+        return [{
+                type: Response_Code.Status,
+                zone: {
+                    number: data[2],
+                    power: !!(data[4] & 0x01 << 0),
+                    mute: !!(data[4] & 0x01 << 1),
+                    dnd: !!(data[4] & 0x01 << 2),
+                    source: (data.readUInt8(8) + 1),
+                    volume: (data[9] === 0x00) ? 60 : (data.readUInt8(9) - 0xC4),
+                    treble: Lookup.hex_to_signed_dec(data[10]),
+                    bass: Lookup.hex_to_signed_dec(data[11]),
+                    balance: Lookup.hex_to_signed_dec(data[12])
+                }
+            },
+            {
+                type: Response_Code.MP3_Repeat,
+                mp3: {
+                    repeat: !!(data[6] & 0x10) // No idea why this comes from zone info
+                }
+            }];
     };
     static handle_exist = (data) => {
         // const debug = {
@@ -218,62 +259,65 @@ export default class Parser {
                 keypad: !!(keypadBits & 0x01 << zone_index) // I'm not convinced this is correct
             });
         }
-        return response;
+        return [response];
     };
     static handle_mp3_end = (data) => {
-        return {
-            type: Response_Code.MP3_End,
-            mp3: {
-                status: 'end'
-            }
-        };
+        console.log('MP3_END', data);
+        return [{
+                type: Response_Code.MP3_End,
+                mp3: {
+                    status: 'end'
+                }
+            }];
     };
     static handle_mp3_on = (data) => {
-        return {
-            type: Response_Code.MP3_On,
-            mp3: {
-                status: 'on'
-            }
-        };
+        console.log('MP3_ON', data);
+        return [{
+                type: Response_Code.MP3_On,
+                mp3: {
+                    status: 'on'
+                }
+            }];
     };
     static handle_mp3_off = (data) => {
-        return {
-            type: Response_Code.MP3_Off,
-            mp3: {
-                status: 'off',
-                data: data.toString('utf8', 4, 18)
-            }
-        };
+        console.log('MP3_OFF', data);
+        return [{
+                type: Response_Code.MP3_Off,
+                mp3: {
+                    status: 'off',
+                    data: data.subarray(4, data.length - 2).toString('utf8') || '' // start after header, end before space and checksum
+                }
+            }];
     };
     static handle_mp3_filename = (data) => {
         let file = '';
         try {
-            file = data.subarray(4).toString('utf-8').split("\0").shift() || ''; // null terminated string
+            file = data.subarray(4, data.length - 2).toString('utf-8') || ''; // start after header, end before space and checksum
         }
         catch (e) {
             console.error(e);
         }
-        return {
-            type: Response_Code.MP3_File_Name,
-            mp3: {
-                file
-            }
-        };
+        return [{
+                type: Response_Code.MP3_File_Name,
+                mp3: {
+                    file
+                }
+            }];
     };
     static handle_mp3_artist = (data) => {
         let artist = '';
         try {
-            artist = data.subarray(4).toString('utf-8').split("\0").shift() || ''; // null terminated string
+            artist = data.subarray(4, data.length - 2).toString('utf-8') || ''; // start after header, end before space and checksum
         }
         catch (e) {
             console.error(e);
         }
-        return {
-            type: Response_Code.MP3_Artist_Name,
-            mp3: {
-                artist
-            }
-        };
+        return [{
+                type: Response_Code.MP3_Artist_Name,
+                mp3: {
+                    artist
+                }
+            }];
     };
     static handle_source_name = (data) => {
         let name = '';
@@ -283,30 +327,30 @@ export default class Parser {
         catch (e) {
             console.error(e);
         }
-        return {
-            type: Response_Code.Source_Name,
-            source: {
-                zone: data[2],
-                number: data.readUInt8(15) + 1, // source is zero-based
-                name
-            }
-        };
+        return [{
+                type: Response_Code.Source_Name,
+                source: {
+                    zone: data[2],
+                    number: data.readUInt8(15) + 1, // source is zero-based
+                    name
+                }
+            }];
     };
     static handle_zone_name = (data) => {
-        return {
-            type: Response_Code.Zone_Name,
-            zone: {
-                number: data.readUInt8(15),
-                name: data.toString('utf8', 4, 14).split("\0").shift() || '' // null terminated string
-            }
-        };
+        return [{
+                type: Response_Code.Zone_Name,
+                zone: {
+                    number: data.readUInt8(15),
+                    name: data.toString('utf8', 4, 14).split("\0").shift() || '' // null terminated string
+                }
+            }];
     };
     static unhandled = (data) => {
         const unhandled = data.toString('utf-8');
         console.log('Unhandled', unhandled);
-        return {
-            type: Response_Code.Unhandled,
-            unhandled
-        };
+        return [{
+                type: Response_Code.Unhandled,
+                unhandled
+            }];
     };
 }

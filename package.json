@@ -9,7 +9,7 @@
     "test": "vitest",
     "build": "tsc",
     "preview": "vite preview",
-    "dev_test": "pnpm dlx vite-node dev/dev.ts"
+    "dev_status": "pnpm dlx vite-node dev/status.ts"
   },
   "keywords": [],
   "author": "Mark Armendariz <src@enobrev.com>",

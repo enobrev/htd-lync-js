@@ -31,7 +31,7 @@ cat reference/decimal/by_decimal.txt | sort --version-sort
 This is just a file I use to test against my own system.
 
 ```shell
-pnpm dlx vite-node dev/dev.ts
+pnpm dlx vite-node dev/status.ts
 ```
 
 ## Usage / Dev Notes
@@ -54,3 +54,16 @@ await LC.send_command(Command.set_treble(zone, 2));
 await LC.send_command(Command.set_balance(zone, 0));
 await LC.send_command(Command.set_source(zone, source));
 ```
+
+## MP3 Repeat
+
+As far as I can tell, the only way to figure out if the MP3 player is set to repeat is to get a zone status.  There
+is no event given by the server that the repeat status has changed
+
+## MP3 Play Status
+
+I cannot yet find a way to determin whether an MP3 is playing upon load.  If You Play or FF or Rewind, then the clients
+get a notification of the new filename and artist, but there's nothing apparent for grabbing the mp3 player's current
+player status
+
+I have _no idea_ when the MP3 End, MP3 On and MP3 Off events occur.  I have not been able to trigger them.

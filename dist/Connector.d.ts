@@ -1,5 +1,6 @@
 import net from "net";
 import { default as PromiseSocket } from "promise-socket";
+import { Response_MP3_Repeat } from "./Parser";
 import Command from "./Command";
 import TypedEventEmitter from './TypedEventEmitter';
 import type { Response_Exist } from "./Parser";
@@ -13,6 +14,7 @@ export type EventTypes = {
     'exist': [Response_Exist];
     'source_name': [Response_Source_Name];
     'zone_name': [Response_Zone_Name];
+    'mp3:repeat': [Response_MP3_Repeat];
     'mp3:end': [Response_MP3_End];
     'mp3:on': [Response_MP3_On];
     'mp3:off': [Response_MP3_Off];

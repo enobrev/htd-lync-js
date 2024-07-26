@@ -3,6 +3,7 @@ import Lookup from "./Lookup";
 
 export const Response_Code = {
     Unhandled:        0x00, // Made-Up
+    MP3_Repeat:       0x01, // Made Up
     Error:            0x1B,
     Status:           0x05,
     Exist:            0x06,
@@ -79,6 +80,13 @@ export interface Response_MP3_On {
     }
 }
 
+export interface Response_MP3_Repeat {
+    type: typeof Response_Code.MP3_Repeat
+    mp3: {
+        repeat: boolean
+    }
+}
+
 export interface Response_MP3_Off {
     type: typeof Response_Code.MP3_Off
     mp3: {
@@ -122,12 +130,12 @@ export interface Response_Zone_Name {
 export type LyncResponse = Response_Id | Response_Error | Response_Status | Response_Exist |
                            Response_Zone_Name | Response_Source_Name | Response_MP3_Artist |
                            Response_MP3_File | Response_MP3_Off | Response_MP3_On | Response_MP3_End |
-                           Response_Unhandled
+                           Response_Unhandled | Response_MP3_Repeat
 
 export default class Parser {
     static previous_result: Buffer;
 
-    static parse(rawData: Buffer): any {
+    static parse(rawData: Buffer): LyncResponse[] {
         let offset        = 0;
         let data: Buffer = Buffer.alloc(rawData.length);
         rawData.copy(data);
@@ -200,10 +208,17 @@ export default class Parser {
             offset += command_length;
         }
 
-        return packets.map(Parser.handle_packet);
+        let responses: LyncResponse[] = [];
+        packets.forEach((data: Buffer) => {
+            responses = responses.concat(this.handle_packet(data));
+        });
+
+        return responses;
     }
 
-    private static handle_packet = (data: Buffer): LyncResponse => {
+    private static handle_packet = (data: Buffer): LyncResponse[] => {
+        // console.log('handle_packet', data);
+
         if (data[0] === Response_Code.Id) {
             return Parser.handle_id(data);
         }
@@ -224,38 +239,76 @@ export default class Parser {
         }
     }
 
-    private static handle_id = (data: Buffer): Response_Id => {
-        return {
+    private static handle_id = (data: Buffer): [Response_Id] => {
+        return [{
             type: Response_Code.Id,
             id: data.subarray().toString('utf-8') || ''
-        };
+        }];
     }
 
-    private static handle_error = (data: Buffer): Response_Error => {
-        return {
+    private static handle_error = (data: Buffer): [Response_Error] => {
+        return [{
             type: Response_Code.Error,
             error: data.readUInt8(4)
-        };
+        }];
     }
 
-    private static handle_status = (data: Buffer): Response_Status => {
-        return {
-            type: Response_Code.Status,
-            zone: {
-                number: data[2],
+    private static handle_status = (data: Buffer): [Response_Status, Response_MP3_Repeat] => {
+
+        const debug = {
+            header: data[0],
+            ignore: data[1],
+            zone: data[2],
+            mode: data[3],
+            settings: {
                 power: !!(data[4] & 0x01 << 0),
                 mute:  !!(data[4] & 0x01 << 1),
                 dnd:   !!(data[4] & 0x01 << 2),
-                source: (data.readUInt8(8) + 1),
-                volume: (data[9] === 0x00) ? 60 : (data.readUInt8(9) - 0xC4),
-                treble: Lookup.hex_to_signed_dec(data[10]),
-                bass: Lookup.hex_to_signed_dec(data[11]),
-                balance: Lookup.hex_to_signed_dec(data[12])
-            }
+            },
+            unknown_5: {
+                value:  data[5],
+                hex:    data[5].toString(16),
+                binary: data[5].toString(2)
+            },
+            mp3_repeat: !!(data[6] & 0x10),
+            unknown_7: {
+                value: data[7],
+                hex: data[7].toString(16),
+                binary: data[7].toString(2)
+            },
+            source: (data.readUInt8(8) + 1),
+            volume: (data[9] === 0x00) ? 60 : (data.readUInt8(9) - 0xC4),
+            treble: Lookup.hex_to_signed_dec(data[10]),
+            bass: Lookup.hex_to_signed_dec(data[11]),
+            balance: Lookup.hex_to_signed_dec(data[12]),
+            checksum: data[13],
         }
+
+        // console.log('Status', debug);
+
+        return [{
+            type: Response_Code.Status,
+            zone: {
+                number:    data[2],
+                power:  !!(data[4] & 0x01 << 0),
+                mute:   !!(data[4] & 0x01 << 1),
+                dnd:    !!(data[4] & 0x01 << 2),
+                source:   (data.readUInt8(8) + 1),
+                volume:   (data[9] === 0x00) ? 60 : (data.readUInt8(9) - 0xC4),
+                treble:   Lookup.hex_to_signed_dec(data[10]),
+                bass:     Lookup.hex_to_signed_dec(data[11]),
+                balance:  Lookup.hex_to_signed_dec(data[12])
+            }
+        },
+        {
+            type: Response_Code.MP3_Repeat,
+            mp3: {
+                repeat: !!(data[6] & 0x10) // No idea why this comes from zone info
+            }
+        }]
     }
 
-    private static handle_exist = (data: Buffer): Response_Exist => {
+    private static handle_exist = (data: Buffer): [Response_Exist] => {
         // const debug = {
         //     header:   data[0],
         //     ignore_1: data[1],
@@ -321,72 +374,75 @@ export default class Parser {
                 keypad: !!(keypadBits & 0x01 << zone_index)  // I'm not convinced this is correct
             });
         }
-        return response;
+        return [response];
     }
 
-    private static handle_mp3_end = (data: Buffer): Response_MP3_End => {
-        return {
+    private static handle_mp3_end = (data: Buffer): [Response_MP3_End] => {
+        console.log('MP3_END', data);
+        return [{
             type: Response_Code.MP3_End,
             mp3: {
                 status: 'end'
             }
-        }
+        }]
     }
 
-    private static handle_mp3_on = (data: Buffer): Response_MP3_On => {
-        return {
+    private static handle_mp3_on = (data: Buffer): [Response_MP3_On] => {
+        console.log('MP3_ON', data);
+        return [{
             type: Response_Code.MP3_On,
             mp3: {
                 status: 'on'
             }
-        }
+        }]
     }
 
-    private static handle_mp3_off = (data: Buffer): Response_MP3_Off => {
-        return {
+    private static handle_mp3_off = (data: Buffer): [Response_MP3_Off] => {
+        console.log('MP3_OFF', data);
+        return [{
             type: Response_Code.MP3_Off,
             mp3: {
                 status: 'off',
-                data: data.toString('utf8', 4, 18)
+                data: data.subarray(4, data.length - 2).toString('utf8') || ''  // start after header, end before space and checksum
             }
-        }
+        }]
     }
 
-    private static handle_mp3_filename = (data: Buffer): Response_MP3_File => {
+    private static handle_mp3_filename = (data: Buffer): [Response_MP3_File] => {
         let file = '';
 
         try {
-            file = data.subarray(4).toString('utf-8').split("\0").shift() || '' // null terminated string
+            file = data.subarray(4, data.length - 2).toString('utf-8') || '' // start after header, end before space and checksum
         } catch (e) {
             console.error(e);
         }
 
-        return {
+        return [{
             type: Response_Code.MP3_File_Name,
             mp3: {
                 file
             }
-        }
+        }]
     }
 
-    private static handle_mp3_artist = (data: Buffer): Response_MP3_Artist => {
+    private static handle_mp3_artist = (data: Buffer): [Response_MP3_Artist] => {
         let artist = '';
 
         try {
-            artist = data.subarray(4).toString('utf-8').split("\0").shift() || '' // null terminated string
+            artist = data.subarray(4, data.length - 2).toString('utf-8') || '' // start after header, end before space and checksum
         } catch (e) {
             console.error(e);
         }
 
-        return {
+        return [{
             type: Response_Code.MP3_Artist_Name,
             mp3: {
                 artist
             }
-        }
+        }]
     }
 
-    private static handle_source_name = (data: Buffer): Response_Source_Name => {
+    private static handle_source_name = (data: Buffer): [Response_Source_Name] => {
         let name = '';
 
         try {
@@ -395,33 +451,33 @@ export default class Parser {
             console.error(e);
         }
 
-        return {
+        return [{
             type: Response_Code.Source_Name,
             source: {
                 zone:   data[2],
                 number: data.readUInt8(15) + 1, // source is zero-based
                 name
             }
-        }
+        }]
     }
 
-    private static handle_zone_name = (data: Buffer): Response_Zone_Name => {
-        return {
+    private static handle_zone_name = (data: Buffer): [Response_Zone_Name] => {
+        return [{
             type: Response_Code.Zone_Name,
             zone: {
                 number: data.readUInt8(15),
                 name: data.toString('utf8', 4, 14).split("\0").shift() || '' // null terminated string
             }
-        }
+        }]
     }
 
-    private static unhandled = (data: Buffer): Response_Unhandled => {
+    private static unhandled = (data: Buffer): [Response_Unhandled] => {
         const unhandled = data.toString('utf-8');
         console.log('Unhandled', unhandled);
 
-        return {
+        return [{
             type: Response_Code.Unhandled,
             unhandled
-        }
+        }]
     }
 }

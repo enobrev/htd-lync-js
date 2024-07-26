@@ -9,6 +9,8 @@ the sort command doesn't grok hexidecimal, and that helped out even more when ty
 
 I found all versions to be incredibly useful in one facet or another, so I kept them all.
 
+I used the `by_function` file to generate my tests for documented commands
+
 | type                   | description                                                 |
 |:-----------------------|:------------------------------------------------------------|
 | by_name                | Sorted by Original Name from Docs                           |

@@ -1,6 +1,6 @@
 import net from "net";
 import {default as PromiseSocket} from "promise-socket";
-import Parser, {Response_Code}  from "./Parser";
+import Parser, {Response_Code, Response_MP3_Repeat} from "./Parser";
 import Command from "./Command";
 import TypedEventEmitter from './TypedEventEmitter'
 
@@ -28,6 +28,7 @@ export type EventTypes = {
     'exist':            [Response_Exist],
     'source_name':      [Response_Source_Name],
     'zone_name':        [Response_Zone_Name],
+    'mp3:repeat':       [Response_MP3_Repeat],
     'mp3:end':          [Response_MP3_End],
     'mp3:on':           [Response_MP3_On],
     'mp3:off':          [Response_MP3_Off],
@@ -61,10 +62,11 @@ export default class Connector {
         switch(response.type) {
             case Response_Code.Error:           this.events.emit('error',       response); break;
             case Response_Code.Id:              this.events.emit('id',          response); break;
-            case Response_Code.Status:          this.events.emit('status',      response); break;
             case Response_Code.Exist:           this.events.emit('exist',       response); break;
+            case Response_Code.Status:          this.events.emit('status',      response); break;
             case Response_Code.Source_Name:     this.events.emit('source_name', response); break;
             case Response_Code.Zone_Name:       this.events.emit('zone_name',   response); break;
+            case Response_Code.MP3_Repeat:      this.events.emit('mp3:repeat',  response); break;
             case Response_Code.MP3_End:         this.events.emit('mp3:end',     response); break;
             case Response_Code.MP3_On:          this.events.emit('mp3:on',      response); break;
             case Response_Code.MP3_Off:         this.events.emit('mp3:off',     response); break;

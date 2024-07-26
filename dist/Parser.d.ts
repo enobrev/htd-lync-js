@@ -1,5 +1,6 @@
 export declare const Response_Code: {
     readonly Unhandled: 0;
+    readonly MP3_Repeat: 1;
     readonly Error: 27;
     readonly Status: 5;
     readonly Exist: 6;
@@ -61,6 +62,12 @@ export interface Response_MP3_On {
         status: "on";
     };
 }
+export interface Response_MP3_Repeat {
+    type: typeof Response_Code.MP3_Repeat;
+    mp3: {
+        repeat: boolean;
+    };
+}
 export interface Response_MP3_Off {
     type: typeof Response_Code.MP3_Off;
     mp3: {
@@ -95,10 +102,10 @@ export interface Response_Zone_Name {
         number: number;
     };
 }
-export type LyncResponse = Response_Id | Response_Error | Response_Status | Response_Exist | Response_Zone_Name | Response_Source_Name | Response_MP3_Artist | Response_MP3_File | Response_MP3_Off | Response_MP3_On | Response_MP3_End | Response_Unhandled;
+export type LyncResponse = Response_Id | Response_Error | Response_Status | Response_Exist | Response_Zone_Name | Response_Source_Name | Response_MP3_Artist | Response_MP3_File | Response_MP3_Off | Response_MP3_On | Response_MP3_End | Response_Unhandled | Response_MP3_Repeat;
 export default class Parser {
     static previous_result: Buffer;
-    static parse(rawData: Buffer): any;
+    static parse(rawData: Buffer): LyncResponse[];
     private static handle_packet;
     private static handle_id;
     private static handle_error;
