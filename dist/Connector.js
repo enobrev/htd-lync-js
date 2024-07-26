@@ -72,7 +72,7 @@ export default class Connector {
             this.connected = true;
         }
         try {
-            // console.log('Send Buffer', buffer);
+            // console.log('send_buffer', buffer);
             await this.ps.write(buffer);
         }
         catch (error) {

@@ -1,6 +1,7 @@
 import Connector from "../dist/Connector";
 import Command from "../dist/Command";
 import {
+    Input,
     MP3_Action,
     Response_Exist,
     Response_Id,
@@ -174,9 +175,6 @@ await LC.send_command(Command.set_echo_mode(true));
 await LC.send_command(Command.get_id());
 
 await LC.send_command(Command.get_status_everything());
-
-await LC.send_command(Command.mp3_action(MP3_Action.Play));
-
 
 process.on('SIGINT', () => bye);
 
