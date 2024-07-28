@@ -1,33 +1,38 @@
-import Command from "./Command";
+import Protocol from "./Protocol";
 import Lookup from "./Lookup";
 export const Response_Code = {
     Unhandled: 0x00, // Made-Up
     MP3_Repeat: 0x01, // Made Up
-    Error: 0x1B,
+    System: 0x02, // Made Up
     Status: 0x05,
     Exist: 0x06,
     MP3_End: 0x09,
+    MP3_File_Name: 0x11,
+    MP3_Artist_Name: 0x12,
     MP3_On: 0x13,
     MP3_Off: 0x14,
     Zone_Source_Name: 0x0C,
     Zone_Name: 0x0D,
     Source_Name: 0x0E,
-    MP3_File_Name: 0x11,
-    MP3_Artist_Name: 0x12,
+    Error: 0x1B,
     Firmware_V3: 0x33, // V3
     Id: 0x4C,
 };
 export default class Parser {
     static previous_result;
+    static reset_previous_result() {
+        this.previous_result = Buffer.from([]);
+    }
     static parse(rawData) {
         let offset = 0;
         let data = Buffer.alloc(rawData.length);
         rawData.copy(data);
-        if (!this.previous_result) {
-            this.previous_result = Buffer.from([]);
+        if (!Parser.previous_result) {
+            Parser.reset_previous_result();
         }
-        if (this.previous_result.length) {
-            data = Buffer.concat([this.previous_result, data]);
+        if (Parser.previous_result.length) {
+            data = Buffer.concat([Parser.previous_result, data]);
+            Parser.reset_previous_result();
         }
         const H = 4; // header
         const C = 1; // checksum
@@ -36,12 +41,18 @@ export default class Parser {
             let packet = Buffer.from([]);
             let command_length = 1;
             const remaining_length = data.length - offset;
-            if (data[offset] === Response_Code.Id && data[offset + 1] === 0x79) {
+            const header = data[offset];
+            const reserved = data[offset + 1];
+            const is_id = header === Response_Code.Id
+                && reserved === 0x79; // L in Lync
+            const is_command = header === 0x02
+                && (reserved === 0x00 || reserved === 0x01);
+            if (is_id) {
                 command_length = 6;
                 packet = data.subarray(offset, offset + command_length);
                 packets.push(packet);
             }
-            else if (data[offset] === 0x02 && (data[offset + 1] === 0x00 || data[offset + 1] === 0x01)) {
+            else if (is_command) {
                 switch (data[offset + 3]) {
                     case Response_Code.Error:
                         command_length = H + 9 + C;
@@ -60,7 +71,7 @@ export default class Parser {
                         break;
                     case Response_Code.MP3_Off:
                         command_length = H + 18 + C + 31;
-                        break;
+                        break; // Doc Note: "Device Not Found"
                     case Response_Code.Zone_Source_Name:
                         command_length = H + 13 + C;
                         break;
@@ -88,27 +99,37 @@ export default class Parser {
                     // Un-handled, so skip it
                     default:
                         if (remaining_length > 2) {
-                            console.warn('Unknown response received', remaining_length);
-                            console.warn(data.subarray(offset));
+                            let debug_packet = Buffer.from([]);
+                            let temp_offset = offset + 2;
+                            while (temp_offset < data.length) { // search for the next command which means the end of this one
+                                if (data[temp_offset] === 0x02 && data[temp_offset + 1] === 0x00) {
+                                    debug_packet = data.subarray(offset, temp_offset);
+                                    break;
+                                }
+                                temp_offset++;
+                            }
+                            console.warn('Unknown response received with length', debug_packet.length);
+                            console.warn('Packet', debug_packet);
+                            command_length = debug_packet.length;
                         }
                         break;
                 }
                 packet = data.subarray(offset, offset + command_length);
                 if (packet.length <= 1) {
-                    this.previous_result = packet;
+                    Parser.previous_result = packet; // Clear previous packet buffer
                 }
-                else if (Command.validate_checksum(packet)) {
+                else if (Protocol.validate_checksum(packet)) {
                     packets.push(packet);
                 }
                 else {
-                    this.previous_result = packet;
+                    Parser.previous_result = packet;
                 }
             }
             offset += command_length;
         }
         let responses = [];
         packets.forEach((data) => {
-            responses = responses.concat(this.handle_packet(data));
+            responses = responses.concat(Parser.handle_packet(data));
         });
         // console.log('responses');
         // console.dir(responses, {depth: null})
@@ -141,33 +162,46 @@ export default class Parser {
             }];
     };
     static handle_error = (data) => {
+        let message = '';
+        const code = data.readUInt8(4);
+        switch (code) {
+            case 1:
+                message = 'Volume Range Error';
+                break;
+            case 2:
+                message = 'Balance Range Error';
+                break;
+            case 3:
+                message = 'Treble Range Error';
+                break;
+            case 4:
+                message = 'Bass Range Error';
+                break;
+        }
         return [{
                 type: Response_Code.Error,
-                error: data.readUInt8(4)
+                code,
+                message
             }];
     };
     static handle_status = (data) => {
-        const debug = {
+        const parse = {
             header: data[0],
             ignore: data[1],
             zone: data[2],
-            mode: data[3],
+            command: data[3],
             settings: {
                 power: !!(data[4] & 0x01 << 0),
                 mute: !!(data[4] & 0x01 << 1),
                 dnd: !!(data[4] & 0x01 << 2),
             },
-            unknown_5: {
-                value: data[5],
-                hex: data[5].toString(16),
-                binary: data[5].toString(2)
+            system: {
+                all_on: !!(data[5] & 0x01 << 0),
+                all_off: !!(data[5] & 0x01 << 1),
+                party_mode: !!(data[5] & 0x01 << 2),
             },
             mp3_repeat: !!(data[6] & 0x10),
-            unknown_7: {
-                value: data[7],
-                hex: data[7].toString(16),
-                binary: data[7].toString(2)
-            },
+            party_mode_mp3_repeat: !!(data[7] & 0x10),
             source: (data.readUInt8(8) + 1),
             volume: (data[9] === 0x00) ? 60 : (data.readUInt8(9) - 0xC4),
             treble: Lookup.hex_to_signed_dec(data[10]),
@@ -175,78 +209,70 @@ export default class Parser {
             balance: Lookup.hex_to_signed_dec(data[12]),
             checksum: data[13],
         };
-        // console.log('Status', debug);
+        // console.log('Status', parse);
         return [{
                 type: Response_Code.Status,
                 zone: {
-                    number: data[2],
-                    power: !!(data[4] & 0x01 << 0),
-                    mute: !!(data[4] & 0x01 << 1),
-                    dnd: !!(data[4] & 0x01 << 2),
-                    source: (data.readUInt8(8) + 1),
-                    volume: (data[9] === 0x00) ? 60 : (data.readUInt8(9) - 0xC4),
-                    treble: Lookup.hex_to_signed_dec(data[10]),
-                    bass: Lookup.hex_to_signed_dec(data[11]),
-                    balance: Lookup.hex_to_signed_dec(data[12])
+                    number: parse.zone,
+                    power: parse.settings.power,
+                    mute: parse.settings.mute,
+                    dnd: parse.settings.dnd,
+                    source: parse.source,
+                    volume: parse.volume,
+                    treble: parse.treble,
+                    bass: parse.bass,
+                    balance: parse.balance
                 }
             },
             {
-                type: Response_Code.MP3_Repeat,
+                type: Response_Code.MP3_Repeat, // No idea why this comes from zone info
                 mp3: {
-                    repeat: !!(data[6] & 0x10) // No idea why this comes from zone info
+                    repeat: parse.mp3_repeat
+                }
+            },
+            {
+                type: Response_Code.System, // No idea why this comes from zone info
+                system: {
+                    all_on: parse.system.all_on,
+                    all_off: parse.system.all_off,
+                    party_mode: parse.system.party_mode,
+                    party_mode_mp3_repeat: parse.party_mode_mp3_repeat // WTF?!
                 }
             }];
     };
     static handle_exist = (data) => {
-        // const debug = {
-        //     header:   data[0],
-        //     ignore_1: data[1],
-        //     zone:     data[2],
-        //     mode:     data[3],
-        //     ignore_4: data[4],
-        //     exist_5: {
-        //         value:  data[5],
-        //         hex:    data[5].toString(16),
-        //         binary: data[5].toString(2)
-        //     },
-        //     keypad_6: {
-        //         value:  data[6],
-        //         hex:    data[6].toString(16),
-        //         binary: data[6].toString(2)
-        //     },
-        //     exist_7: {
-        //         value:  data[7],
-        //         hex:    data[7].toString(16),
-        //         binary: data[7].toString(2)
-        //     },
-        //     keypad_8: {
-        //         value:  data[8],
-        //         hex:    data[8].toString(16),
-        //         binary: data[8].toString(2)
-        //     },
-        //     unknown_9: {
-        //         value:  data[9],
-        //         hex:    data[9].toString(16),
-        //         binary: data[9].toString(2)
-        //     },
-        //     unknown_10: {
-        //         value:  data[10],
-        //         hex:    data[10].toString(16),
-        //         binary: data[10].toString(2)
-        //     },
-        //     unknown_11: {
-        //         value:  data[11],
-        //         hex:    data[11].toString(16),
-        //         binary: data[11].toString(2)
-        //     },
-        //     unknown_12: {
-        //         value:  data[12],
-        //         hex:    data[12].toString(16),
-        //         binary: data[12].toString(2)
-        //     },
-        //     checksum: data[13],
-        // }
-        //
+        const debug = {
+            header: data[0],
+            reserved: data[1],
+            zone: data[2],
+            command: data[3],
+            ignore: data[4],
+            exist_1_8: {
+                value: data[5],
+                hex: data[5].toString(16),
+                binary: data[5].toString(2)
+            },
+            keypad_1_8: {
+                value: data[6],
+                hex: data[6].toString(16),
+                binary: data[6].toString(2)
+            },
+            exist_9_12: {
+                value: data[7],
+                hex: data[7].toString(16),
+                binary: data[7].toString(2)
+            },
+            keypad_9_12: {
+                value: data[8],
+                hex: data[8].toString(16),
+                binary: data[8].toString(2)
+            },
+            ignore_9: data[9],
+            ignore_10: data[10],
+            ignore_11: data[11],
+            ignore_12: data[12],
+            checksum: data[13],
+        };
         // console.log('Exist', debug);
         let response = {
             type: Response_Code.Exist,
@@ -294,7 +320,7 @@ export default class Parser {
     static handle_mp3_filename = (data) => {
         let file = '';
         try {
-            file = data.subarray(4, data.length - 2).toString('utf-8').trim() || ''; // start after header, end before space and checksum
+            file = data.subarray(4, data.length - 2).toString('utf-8').split("\0").shift() || ''; // start after header, end before space and checksum, stop at null
         }
         catch (e) {
             console.error(e);
@@ -309,7 +335,7 @@ export default class Parser {
     static handle_mp3_artist = (data) => {
         let artist = '';
         try {
-            artist = data.subarray(4, data.length - 2).toString('utf-8').trim() || ''; // start after header, end before space and checksum
+            artist = data.subarray(4, data.length - 2).toString('utf-8').split("\0").shift() || ''; // start after header, end before space and checksum, stop at null
         }
         catch (e) {
             console.error(e);
@@ -324,7 +350,7 @@ export default class Parser {
     static handle_source_name = (data) => {
         let name = '';
         try {
-            name = data.subarray(4, data.length - 2).toString('utf-8').trim() || ''; // start after header, end before space and checksum
+            name = data.subarray(4, data.length - 2).toString('ascii').split("\0").shift() || ''; // start after header, end before space and checksum, stop at null
         }
         catch (e) {
             console.error(e);
@@ -343,7 +369,7 @@ export default class Parser {
                 type: Response_Code.Zone_Name,
                 zone: {
                     number: data.readUInt8(15),
-                    name: data.subarray(4, data.length - 2).toString('utf-8').trim() || '' // start after header, end before space and checksum
+                    name: data.subarray(4, data.length - 2).toString('ascii').split("\0").shift() || '' // start after header, end before space and checksum, stop at null
                 }
             }];
     };

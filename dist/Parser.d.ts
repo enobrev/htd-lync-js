@@ -1,17 +1,18 @@
 export declare const Response_Code: {
     readonly Unhandled: 0;
     readonly MP3_Repeat: 1;
-    readonly Error: 27;
+    readonly System: 2;
     readonly Status: 5;
     readonly Exist: 6;
     readonly MP3_End: 9;
+    readonly MP3_File_Name: 17;
+    readonly MP3_Artist_Name: 18;
     readonly MP3_On: 19;
     readonly MP3_Off: 20;
     readonly Zone_Source_Name: 12;
     readonly Zone_Name: 13;
     readonly Source_Name: 14;
-    readonly MP3_File_Name: 17;
-    readonly MP3_Artist_Name: 18;
+    readonly Error: 27;
     readonly Firmware_V3: 51;
     readonly Id: 76;
 };
@@ -19,9 +20,19 @@ export interface Response_Id {
     type: typeof Response_Code.Id;
     id: string;
 }
+export interface Response_System {
+    type: typeof Response_Code.System;
+    system: {
+        all_on: boolean;
+        all_off: boolean;
+        party_mode: boolean;
+        party_mode_mp3_repeat: boolean;
+    };
+}
 export interface Response_Error {
     type: typeof Response_Code.Error;
-    error: number;
+    code: number;
+    message: string;
 }
 export interface Response_Unhandled {
     type: typeof Response_Code.Unhandled;
@@ -102,9 +113,10 @@ export interface Response_Zone_Name {
         number: number;
     };
 }
-export type LyncResponse = Response_Id | Response_Error | Response_Status | Response_Exist | Response_Zone_Name | Response_Source_Name | Response_MP3_Artist | Response_MP3_File | Response_MP3_Off | Response_MP3_On | Response_MP3_End | Response_Unhandled | Response_MP3_Repeat;
+export type LyncResponse = Response_Id | Response_Error | Response_Status | Response_Exist | Response_Zone_Name | Response_Source_Name | Response_MP3_Artist | Response_MP3_File | Response_MP3_Off | Response_MP3_On | Response_MP3_End | Response_Unhandled | Response_MP3_Repeat | Response_System;
 export default class Parser {
     static previous_result: Buffer;
+    static reset_previous_result(): void;
     static parse(rawData: Buffer): LyncResponse[];
     private static handle_packet;
     private static handle_id;

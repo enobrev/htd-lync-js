@@ -30,6 +30,9 @@ export default class Connector {
             case Response_Code.Id:
                 this.events.emit('id', response);
                 break;
+            case Response_Code.System:
+                this.events.emit('system', response);
+                break;
             case Response_Code.Exist:
                 this.events.emit('exist', response);
                 break;

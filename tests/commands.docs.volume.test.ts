@@ -1,6 +1,6 @@
 
 import {describe, expect, test} from 'vitest'
-import Command from "../src/Command";
+import Protocol from "../src/Protocol";
 
 describe.concurrent('Zone Volume', () => {
     test.concurrent.each([
@@ -737,7 +737,7 @@ describe.concurrent('Zone Volume', () => {
         [60,  11, [0x02,0x01,0x0B,0x15,0x00,0x23]],
         [60,  12, [0x02,0x01,0x0C,0x15,0x00,0x24]],
     ])('Command.set_volume(%i, %i) -> %o', (volume, zone, expected) => {
-        expect(Command.set_volume(zone, volume).get_command()).toEqual(Buffer.from(expected));
+        expect(Protocol.set_volume(zone, volume).get_command()).toEqual(Buffer.from(expected));
     })
 });
 

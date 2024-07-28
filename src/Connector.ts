@@ -1,7 +1,7 @@
 import net from "net";
 import {default as PromiseSocket} from "promise-socket";
-import Parser, {Response_Code, Response_MP3_Repeat} from "./Parser";
-import Command from "./Command";
+import Parser, {Response_Code, Response_MP3_Repeat, Response_System} from "./Parser";
+import Protocol from "./Protocol";
 import TypedEventEmitter from './TypedEventEmitter'
 
 import type {Response_Exist} from "./Parser";
@@ -24,6 +24,7 @@ export type EventTypes = {
     'socket:error':     [Error],
     'error':            [Response_Error],
     'id':               [Response_Id],
+    'system':           [Response_System],
     'status':           [Response_Status],
     'exist':            [Response_Exist],
     'source_name':      [Response_Source_Name],
@@ -62,6 +63,7 @@ export default class Connector {
         switch(response.type) {
             case Response_Code.Error:           this.events.emit('error',       response); break;
             case Response_Code.Id:              this.events.emit('id',          response); break;
+            case Response_Code.System:          this.events.emit('system',      response); break;
             case Response_Code.Exist:           this.events.emit('exist',       response); break;
             case Response_Code.Status:          this.events.emit('status',      response); break;
             case Response_Code.Source_Name:     this.events.emit('source_name', response); break;
@@ -75,7 +77,7 @@ export default class Connector {
         }
     }
 
-    async send_command(command: Command): Promise<void> {
+    async send_command(command: Protocol): Promise<void> {
         await this.send_buffer(command.get_command());
     }
 
