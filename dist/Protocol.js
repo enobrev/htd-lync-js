@@ -186,6 +186,11 @@ export default class Protocol {
     static set_party_mode(data) {
         return new Protocol({ command: Command.Common, data });
     }
+    static set_party_mode_number(party_source) {
+        party_source = Lookup.ranged_number(party_source, 1, 18);
+        const add = party_source <= 12 ? PartySource._01 : PartySource._13;
+        return this.set_party_mode((party_source - 1) + add);
+    }
     // Doc Note: Echo Data : Echo Zone Name
     static get_zone_name(zone) {
         return new Protocol({ command: Command.Get_Zone_Name, zone });
@@ -223,6 +228,11 @@ export default class Protocol {
     // - there is NO response and the physical keypad doesn't show a source name if the source number is out of range
     static set_source(zone, data) {
         return new Protocol({ command: Command.Common, zone, data: data });
+    }
+    static set_source_number(zone, source) {
+        source = Lookup.ranged_number(source, 1, 18);
+        const add = source <= 12 ? Source._01 : Source._13;
+        return this.set_source(zone, (source - 1) + add);
     }
     static set_dnd(zone, on) {
         const data = on ? Data.DND_On : Data.DND_Off;

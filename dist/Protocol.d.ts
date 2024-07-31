@@ -138,6 +138,7 @@ export default class Protocol {
     static get_status_zones(): Protocol;
     static get_status_all_zones(): Protocol;
     static set_party_mode(data: PartySource): Protocol;
+    static set_party_mode_number(party_source: number): Protocol;
     static get_zone_name(zone: Zone): Protocol;
     static get_source_name(zone: Zone, data: Source): Protocol;
     static set_all_power(on: boolean): Protocol;
@@ -145,6 +146,7 @@ export default class Protocol {
     static set_volume(zone: Zone, _volume: number): Protocol;
     static set_mute(zone: Zone, on: boolean): Protocol;
     static set_source(zone: Zone, data: Source): Protocol;
+    static set_source_number(zone: Zone, source: number): Protocol;
     static set_dnd(zone: Zone, on: boolean): Protocol;
     static set_balance(zone: Zone, _balance: number): Protocol;
     static set_treble(zone: Zone, _treble: number): Protocol;
