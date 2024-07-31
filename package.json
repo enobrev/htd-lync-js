@@ -1,6 +1,6 @@
 {
   "name": "htd-lync",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -11,7 +11,11 @@
     "preview": "vite preview",
     "dev_status": "pnpm dlx vite-node dev/status.ts"
   },
-  "keywords": ["htd", "lync12", "home-audio"],
+  "keywords": [
+    "htd",
+    "lync12",
+    "home-audio"
+  ],
   "author": {
     "name": "Mark Armendariz",
     "email": "src@enobrev.com",
