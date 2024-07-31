@@ -11,8 +11,16 @@
     "preview": "vite preview",
     "dev_status": "pnpm dlx vite-node dev/status.ts"
   },
-  "keywords": [],
-  "author": "Mark Armendariz <src@enobrev.com>",
+  "keywords": ["htd", "lync12", "home-audio"],
+  "author": {
+    "name": "Mark Armendariz",
+    "email": "src@enobrev.com",
+    "url": "https://github.com/enobrev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/enobrev/htd-lync-js.git"
+  },
   "license": "MIT",
   "description": "",
   "devDependencies": {
