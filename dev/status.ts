@@ -50,8 +50,6 @@ zones.set(12, {number: 12, name: "Zone 12", power: false, mute: false, dnd: fals
 
 type LyncStatus = {
     id: string
-    sources: Map<number, string>
-    zones: Map<number, StatusZone>
     all_on:      boolean
     all_off:     boolean
     party_mode:  boolean
@@ -61,6 +59,8 @@ type LyncStatus = {
         file: string
         artist: string
     }
+    sources: Map<number, string>
+    zones: Map<number, StatusZone>
 }
 
 const Lync: LyncStatus = {
