@@ -219,6 +219,22 @@ stdin.on( 'data', function( key ){
             console.dir(Lync, {depth: null});
             break;
 
+        case 'a':
+            LC.send_command(Protocol.set_source_number(Zone._07, 3));
+            break;
+
+        case 'b':
+            LC.send_command(Protocol.set_source_number(Zone._07, 4));
+            break;
+
+        case 'c':
+            LC.send_command(Protocol.set_source_number(Zone._07, 15));
+            break;
+
+        case 'd':
+            LC.send_command(Protocol.set_source_number(Zone._07, 16));
+            break;
+
         case 'q':
             bye();
             break;

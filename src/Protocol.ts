@@ -131,7 +131,24 @@ type CommandProps = {
     data?:    Data | Source | PartySource | Name
 }
 
-type Name = number[]
+type Name = number[];
+
+
+const SourceIndex = [
+    Source._01, Source._02, Source._03, Source._04,
+    Source._05, Source._06, Source._07, Source._08,
+    Source._09, Source._10, Source._11, Source._12,
+    Source._13, Source._14, Source._15, Source._16,
+    Source._17, Source._18
+];
+
+const PartySourceIndex = [
+    PartySource._01, PartySource._02, PartySource._03, PartySource._04,
+    PartySource._05, PartySource._06, PartySource._07, PartySource._08,
+    PartySource._09, PartySource._10, PartySource._11, PartySource._12,
+    PartySource._13, PartySource._14, PartySource._15, PartySource._16,
+    PartySource._17, PartySource._18
+];
 
 export default class Protocol {
     header:     typeof Header
@@ -228,8 +245,7 @@ export default class Protocol {
 
     static set_party_mode_number(party_source: number): Protocol {
         party_source = Lookup.ranged_number(party_source, 1, 18);
-        const add = party_source <= 12 ? PartySource._01 : PartySource._13;
-        return this.set_party_mode((party_source - 1) + add);
+        return Protocol.set_party_mode(PartySourceIndex[party_source - 1]);
     }
 
     // Doc Note: Echo Data : Echo Zone Name
@@ -281,8 +297,7 @@ export default class Protocol {
 
     static set_source_number(zone: Zone, source: number): Protocol {
         source = Lookup.ranged_number(source, 1, 18);
-        const add = source <= 12 ? Source._01 : Source._13;
-        return this.set_source(zone, (source - 1) + add);
+        return Protocol.set_source(zone, SourceIndex[source - 1]);
     }
 
     static set_dnd(zone: Zone, on: boolean): Protocol {
