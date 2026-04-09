@@ -1,10 +1,10 @@
 import net from "net";
 import {default as PromiseSocket} from "promise-socket";
-import Parser, {Response_Code, Response_MP3_Repeat, Response_System} from "./Parser";
-import Protocol from "./Protocol";
-import TypedEventEmitter from './TypedEventEmitter'
+import Parser, {Response_Code, Response_MP3_Repeat, Response_System} from "./Parser.js";
+import Protocol from "./Protocol.js";
+import TypedEventEmitter from './TypedEventEmitter.js'
 
-import type {Response_Exist} from "./Parser";
+import type {Response_Exist} from "./Parser.js";
 import type {
     LyncResponse,
     Response_Error,
@@ -18,7 +18,7 @@ import type {
     Response_Source_Name,
     Response_Status,
     Response_Zone_Name
-} from "./Parser";
+} from "./Parser.js";
 
 export type EventTypes = {
     'socket:connected': [],

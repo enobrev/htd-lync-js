@@ -1,4 +1,4 @@
-import Lookup from "./Lookup";
+import Lookup from "./Lookup.js";
 
 // Command: Header, IsVolume, Zone, Mode, Func|PartyInput, Checksum
 

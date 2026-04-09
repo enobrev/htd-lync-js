@@ -1,5 +1,5 @@
-import Protocol, {Header} from "./Protocol";
-import Lookup from "./Lookup";
+import Protocol, {Header} from "./Protocol.js";
+import Lookup from "./Lookup.js";
 
 export const Response_Code = {
     Unhandled:        0x00, // Made-Up
