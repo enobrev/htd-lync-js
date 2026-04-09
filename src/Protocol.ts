@@ -6,7 +6,7 @@ export const Header   = 0x02;
 export const IsVolume = {
     No:  0x00,
     Yes: 0x01
-}
+} as const
 export type IsVolume = (typeof IsVolume)[keyof typeof IsVolume];
 export const Zone = {
     Broadcast:  0x00,
@@ -22,7 +22,7 @@ export const Zone = {
     _10:        0x0A,
     _11:        0x0B,
     _12:        0x0C
-}
+} as const
 export type Zone = (typeof Zone)[keyof typeof Zone];
 
 export const Command = {
@@ -46,7 +46,7 @@ export const Command = {
     Echo:                   0x19,
     Set_Name_Default:       0x1C,
     Set_Audio_Default:      0x1E,
-}
+} as const
 export type Command = (typeof Command)[keyof typeof Command];
 
 export const Data = {
@@ -65,7 +65,7 @@ export const Data = {
     DND_On:             0x59,
     DND_Off:            0x5A,
     On:                 0xFF
-}
+} as const
 export type Data = (typeof Data)[keyof typeof Data];
 
 export const Source = {
@@ -87,7 +87,7 @@ export const Source = {
     _16:  0x66,
     _17:  0x67,
     _18:  0x68
-}
+} as const
 export type Source = (typeof Source)[keyof typeof Source];
 
 export const PartySource = {
@@ -109,7 +109,7 @@ export const PartySource = {
     _16:  0x6C,
     _17:  0x6D,
     _18:  0x6E
-}
+} as const
 export type PartySource = (typeof PartySource)[keyof typeof PartySource];
 
 export const MP3 = {
@@ -128,7 +128,7 @@ export type MP3 = (typeof MP3)[keyof typeof MP3];
 type CommandProps = {
     zone?:    Zone;
     command?: Command
-    data?:    Data | Source | PartySource | Name
+    data?:    Data | Source | PartySource | Name | number
 }
 
 type Name = number[];
@@ -155,7 +155,7 @@ export default class Protocol {
     is_volume:  IsVolume
     zone:       Zone
     command:    Command
-    data:       Data | Source | PartySource | Name
+    data:       Data | Source | PartySource | Name | number
 
     constructor({zone = Zone.Broadcast, command = Command.Common, data = Data.Off}: CommandProps) {
         this.header    = Header;
@@ -166,13 +166,14 @@ export default class Protocol {
     }
 
     get_command(): Buffer {
-        const data = !Array.isArray(this.data) ? [this.data] : this.data;
-        const command = [
+        const data: number[] = !Array.isArray(this.data) ? [this.data] : this.data;
+        const command: number[] = [
             this.header,
             this.is_volume,
             this.zone,
-            this.command
-        ].concat(data);
+            this.command,
+            ...data
+        ];
 
         return Protocol.add_checksum(Buffer.from(command));
     }
@@ -276,7 +277,7 @@ export default class Protocol {
         const volume = Lookup.valid_volume(_volume);
 
         // For volume command, level 60 is 0x00, 59 is 0xFF, and 0 is 0xC4
-        const data = (volume + 0x0C4) & 0x0FF as Data;
+        const data = ((volume + 0x0C4) & 0x0FF) as number;
 
         return new Protocol({command: Command.Set_Volume, zone, data: data});
     }
