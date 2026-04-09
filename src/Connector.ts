@@ -40,11 +40,11 @@ export type EventTypes = {
 }
 
 export default class Connector {
-    host: string;
-    port: number;
-    client: net.Socket;
-    ps: PromiseSocket<net.Socket>;
-    connected: boolean = false;
+    readonly host: string;
+    readonly port: number;
+    private client: net.Socket;
+    private ps: PromiseSocket<net.Socket>;
+    private connected: boolean = false;
     events: TypedEventEmitter<EventTypes>;
 
     constructor(host: string, port: number) {
@@ -53,7 +53,13 @@ export default class Connector {
         this.client = new net.Socket();
         this.ps     = new PromiseSocket(this.client);
         this.events = new TypedEventEmitter<EventTypes>();
-        this.client.on('error', (error: Error) => this.events.emit('socket:error', error));
+        this.client.on('error', (error: Error) => {
+            this.connected = false;
+            this.events.emit('socket:error', error);
+        });
+        this.client.on('close', () => {
+            this.connected = false;
+        });
         this.client.on('data',  (data: Buffer) => {
             Parser.parse(data).forEach((response: LyncResponse) => {
                 this.emit_response(response);
@@ -92,10 +98,14 @@ export default class Connector {
         }
 
         try {
-            // console.log('send_buffer', buffer);
             await this.ps.write(buffer);
         } catch (error) {
             this.events.emit('socket:error', error as Error);
         }
+    }
+
+    disconnect(): void {
+        this.client.destroy();
+        this.connected = false;
     }
 }

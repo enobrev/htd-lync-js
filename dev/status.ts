@@ -81,7 +81,7 @@ const Lync: LyncStatus = {
 const LC = new Connector('10.0.0.25', 10006);
 
 const bye = () => {
-    LC.client.destroy();
+    LC.disconnect();
     console.log('\nBye!');
     process.exit(0);
 };
