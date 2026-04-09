@@ -224,8 +224,6 @@ export default class Parser {
                                 temp_offset++;
                             }
 
-                            console.warn('Unknown response received with length', debug_packet.length);
-                            console.warn('Packet', debug_packet);
                             command_length = debug_packet.length;
                         }
                         break;
@@ -249,15 +247,10 @@ export default class Parser {
             responses = responses.concat(Parser.handle_packet(data));
         });
 
-        // console.log('responses');
-        // console.dir(responses, {depth: null})
-
         return responses;
     }
 
     private static handle_packet = (data: Buffer): LyncResponse[] => {
-        // console.log('handle_packet', data);
-
         if (data[0] === Response_Code.Id) {
             return Parser.handle_id(data);
         }
@@ -415,7 +408,6 @@ export default class Parser {
     }
 
     private static handle_mp3_end = (data: Buffer): [Response_MP3_End] => {
-        console.log('MP3_END', data);
         return [{
             type: Response_Code.MP3_End,
             mp3: {
@@ -425,7 +417,6 @@ export default class Parser {
     }
 
     private static handle_mp3_on = (data: Buffer): [Response_MP3_On] => {
-        console.log('MP3_ON', data);
         return [{
             type: Response_Code.MP3_On,
             mp3: {
@@ -435,7 +426,6 @@ export default class Parser {
     }
 
     private static handle_mp3_off = (data: Buffer): [Response_MP3_Off] => {
-        console.log('MP3_OFF', data);
         return [{
             type: Response_Code.MP3_Off,
             mp3: {
@@ -446,13 +436,7 @@ export default class Parser {
     }
 
     private static handle_mp3_filename = (data: Buffer): [Response_MP3_File] => {
-        let file = '';
-
-        try {
-            file = data.subarray(4, data.length - 2).toString('utf-8').split("\0").shift() || '' // start after header, end before space and checksum, stop at null
-        } catch (e) {
-            console.error(e);
-        }
+        const file = data.subarray(4, data.length - 2).toString('utf-8').split("\0").shift() || ''; // start after header, end before space and checksum, stop at null
 
         return [{
             type: Response_Code.MP3_File_Name,
@@ -463,13 +447,7 @@ export default class Parser {
     }
 
     private static handle_mp3_artist = (data: Buffer): [Response_MP3_Artist] => {
-        let artist = '';
-
-        try {
-            artist = data.subarray(4, data.length - 2).toString('utf-8').split("\0").shift() || '' // start after header, end before space and checksum, stop at null
-        } catch (e) {
-            console.error(e);
-        }
+        const artist = data.subarray(4, data.length - 2).toString('utf-8').split("\0").shift() || ''; // start after header, end before space and checksum, stop at null
 
         return [{
             type: Response_Code.MP3_Artist_Name,
@@ -510,7 +488,6 @@ export default class Parser {
 
     private static unhandled = (data: Buffer): [Response_Unhandled] => {
         const unhandled = data.toString('utf-8');
-        console.warn('Unhandled', unhandled);
 
         return [{
             type: Response_Code.Unhandled,
