@@ -79,7 +79,7 @@ describe.concurrent('MP3', () => {
     });
 
     test('Command.mp3(MP3.Repeat_On)', async () => {
-        expect(Protocol.mp3(MP3.Repeat_On).get_command()).toEqual(Buffer.from([0x02,0x00,0x00,0x01,0xFF,0x102]));
+        expect(Protocol.mp3(MP3.Repeat_On).get_command()).toEqual(Buffer.from([0x02,0x00,0x00,0x01,0xFF,0x02]));
     });
 });
 
