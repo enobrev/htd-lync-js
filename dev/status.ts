@@ -192,9 +192,9 @@ await sleep(2000);
 await LC.send_command(Protocol.get_status_all());
 
 
-process.on('SIGINT', () => bye);
+process.on('SIGINT', bye);
 
-var stdin = process.stdin;
+const stdin = process.stdin;
 
 // without this, we would only get streams once enter is pressed
 stdin.setRawMode( true );
