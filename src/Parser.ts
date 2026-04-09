@@ -46,12 +46,6 @@ export interface Response_Unhandled {
     unhandled: string
 }
 
-// interface Unknown {
-//     value: number,
-//     hex:   string,
-//     binary: string
-// }
-
 export interface Response_Status {
     type: typeof Response_Code.Status
     zone: {
@@ -151,24 +145,20 @@ export type LyncResponse = Response_Id | Response_Error | Response_Status | Resp
                            Response_Firmware
 
 export default class Parser {
-    static previous_result: Buffer;
+    private previous_result: Buffer = Buffer.from([]);
 
-    static reset_previous_result(): void {
+    private reset_previous_result(): void {
         this.previous_result = Buffer.from([]);
     }
 
-    static parse(rawData: Buffer): LyncResponse[] {
+    parse(rawData: Buffer): LyncResponse[] {
         let offset        = 0;
         let data: Buffer = Buffer.alloc(rawData.length);
         rawData.copy(data);
 
-        if (!Parser.previous_result) {
-            Parser.reset_previous_result();
-        }
-
-        if (Parser.previous_result.length) {
-            data = Buffer.concat([Parser.previous_result, data]);
-            Parser.reset_previous_result();
+        if (this.previous_result.length) {
+            data = Buffer.concat([this.previous_result, data]);
+            this.reset_previous_result();
         }
 
         const H = 4; // header
@@ -238,11 +228,11 @@ export default class Parser {
 
                 packet = data.subarray(offset, offset + command_length);
                 if (packet.length <= 1) {
-                    Parser.previous_result = packet; // Clear previous packet buffer
+                    this.previous_result = packet; // Clear previous packet buffer
                 } else if (Protocol.validate_checksum(packet)) {
                     packets.push(packet);
                 } else {
-                    Parser.previous_result = packet;
+                    this.previous_result = packet;
                 }
             }
 
@@ -329,8 +319,6 @@ export default class Parser {
             checksum: data[13],
         }
 
-        // console.log('Status', parse);
-
         return [{
             type: Response_Code.Status,
             zone: {
@@ -363,41 +351,6 @@ export default class Parser {
     }
 
     private static handle_exist = (data: Buffer): [Response_Exist] => {
-        const debug = {
-            header:   data[0],
-            reserved: data[1],
-            zone:     data[2],
-            command:  data[3],
-            ignore:   data[4],
-            exist_1_8: {
-                value:  data[5],
-                hex:    data[5].toString(16),
-                binary: data[5].toString(2)
-            },
-            keypad_1_8: {
-                value:  data[6],
-                hex:    data[6].toString(16),
-                binary: data[6].toString(2)
-            },
-            exist_9_12: {
-                value:  data[7],
-                hex:    data[7].toString(16),
-                binary: data[7].toString(2)
-            },
-            keypad_9_12: {
-                value:  data[8],
-                hex:    data[8].toString(16),
-                binary: data[8].toString(2)
-            },
-            ignore_9:  data[9],
-            ignore_10: data[10],
-            ignore_11: data[11],
-            ignore_12: data[12],
-            checksum:  data[13],
-        }
-
-        // console.log('Exist', debug);
-
         let response: Response_Exist = {
             type: Response_Code.Exist,
             zones: []
@@ -466,13 +419,7 @@ export default class Parser {
     }
 
     private static handle_source_name = (data: Buffer): [Response_Source_Name] => {
-        let name = '';
-
-        try {
-            name = data.subarray(4, data.length - 2).toString('ascii').split("\0").shift() || '' // start after header, end before space and checksum, stop at null
-        } catch (e) {
-            console.error(e);
-        }
+        const name = data.subarray(4, data.length - 2).toString('ascii').split("\0").shift() || ''; // start after header, end before space and checksum, stop at null
 
         return [{
             type: Response_Code.Source_Name,

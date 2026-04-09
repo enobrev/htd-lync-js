@@ -44,6 +44,7 @@ export default class Connector {
     readonly port: number;
     private client: net.Socket;
     private ps: PromiseSocket<net.Socket>;
+    private parser: Parser = new Parser();
     private connected: boolean = false;
     events: TypedEventEmitter<EventTypes>;
 
@@ -61,7 +62,7 @@ export default class Connector {
             this.connected = false;
         });
         this.client.on('data',  (data: Buffer) => {
-            Parser.parse(data).forEach((response: LyncResponse) => {
+            this.parser.parse(data).forEach((response: LyncResponse) => {
                 this.emit_response(response);
             })
         });
