@@ -113,11 +113,15 @@ export interface Response_Zone_Name {
         number: number;
     };
 }
-export type LyncResponse = Response_Id | Response_Error | Response_Status | Response_Exist | Response_Zone_Name | Response_Source_Name | Response_MP3_Artist | Response_MP3_File | Response_MP3_Off | Response_MP3_On | Response_MP3_End | Response_Unhandled | Response_MP3_Repeat | Response_System;
+export interface Response_Firmware {
+    type: typeof Response_Code.Firmware_V3;
+    firmware: string;
+}
+export type LyncResponse = Response_Id | Response_Error | Response_Status | Response_Exist | Response_Zone_Name | Response_Source_Name | Response_MP3_Artist | Response_MP3_File | Response_MP3_Off | Response_MP3_On | Response_MP3_End | Response_Unhandled | Response_MP3_Repeat | Response_System | Response_Firmware;
 export default class Parser {
-    static previous_result: Buffer;
-    static reset_previous_result(): void;
-    static parse(rawData: Buffer): LyncResponse[];
+    private previous_result;
+    private reset_previous_result;
+    parse(rawData: Buffer): LyncResponse[];
     private static handle_packet;
     private static handle_id;
     private static handle_error;
@@ -130,6 +134,7 @@ export default class Parser {
     private static handle_mp3_artist;
     private static handle_source_name;
     private static handle_zone_name;
+    private static handle_firmware;
     private static unhandled;
 }
 export {};

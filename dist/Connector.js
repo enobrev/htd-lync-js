@@ -1,12 +1,13 @@
 import net from "net";
 import { default as PromiseSocket } from "promise-socket";
-import Parser, { Response_Code } from "./Parser";
-import TypedEventEmitter from './TypedEventEmitter';
+import Parser, { Response_Code } from "./Parser.js";
+import TypedEventEmitter from './TypedEventEmitter.js';
 export default class Connector {
     host;
     port;
     client;
     ps;
+    parser = new Parser();
     connected = false;
     events;
     constructor(host, port) {
@@ -15,9 +16,15 @@ export default class Connector {
         this.client = new net.Socket();
         this.ps = new PromiseSocket(this.client);
         this.events = new TypedEventEmitter();
-        this.client.on('error', (error) => this.events.emit('socket:error', error));
+        this.client.on('error', (error) => {
+            this.connected = false;
+            this.events.emit('socket:error', error);
+        });
+        this.client.on('close', () => {
+            this.connected = false;
+        });
         this.client.on('data', (data) => {
-            Parser.parse(data).map((response) => {
+            this.parser.parse(data).forEach((response) => {
                 this.emit_response(response);
             });
         });
@@ -63,6 +70,9 @@ export default class Connector {
             case Response_Code.MP3_Artist_Name:
                 this.events.emit('mp3:artist', response);
                 break;
+            case Response_Code.Firmware_V3:
+                this.events.emit('firmware', response);
+                break;
         }
     }
     async send_command(command) {
@@ -75,11 +85,14 @@ export default class Connector {
             this.connected = true;
         }
         try {
-            // console.log('send_buffer', buffer);
             await this.ps.write(buffer);
         }
         catch (error) {
             this.events.emit('socket:error', error);
         }
+    }
+    disconnect() {
+        this.client.destroy();
+        this.connected = false;
     }
 }

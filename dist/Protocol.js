@@ -1,4 +1,4 @@
-import Lookup from "./Lookup";
+import Lookup from "./Lookup.js";
 // Command: Header, IsVolume, Zone, Mode, Func|PartyInput, Checksum
 export const Header = 0x02;
 export const IsVolume = {
@@ -142,8 +142,9 @@ export default class Protocol {
             this.header,
             this.is_volume,
             this.zone,
-            this.command
-        ].concat(data);
+            this.command,
+            ...data
+        ];
         return Protocol.add_checksum(Buffer.from(command));
     }
     static add_checksum(command) {
@@ -227,7 +228,7 @@ export default class Protocol {
     static set_volume(zone, _volume) {
         const volume = Lookup.valid_volume(_volume);
         // For volume command, level 60 is 0x00, 59 is 0xFF, and 0 is 0xC4
-        const data = (volume + 0x0C4) & 0x0FF;
+        const data = ((volume + 0x0C4) & 0x0FF);
         return new Protocol({ command: Command.Set_Volume, zone, data: data });
     }
     static set_mute(zone, on) {
