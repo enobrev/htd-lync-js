@@ -8,6 +8,7 @@ import type {Response_Exist} from "./Parser";
 import type {
     LyncResponse,
     Response_Error,
+    Response_Firmware,
     Response_Id,
     Response_MP3_Artist,
     Response_MP3_End,
@@ -34,7 +35,8 @@ export type EventTypes = {
     'mp3:on':           [Response_MP3_On],
     'mp3:off':          [Response_MP3_Off],
     'mp3:file':         [Response_MP3_File],
-    'mp3:artist':       [Response_MP3_Artist]
+    'mp3:artist':       [Response_MP3_Artist],
+    'firmware':         [Response_Firmware]
 }
 
 export default class Connector {
@@ -74,6 +76,7 @@ export default class Connector {
             case Response_Code.MP3_Off:         this.events.emit('mp3:off',     response); break;
             case Response_Code.MP3_File_Name:   this.events.emit('mp3:file',    response); break;
             case Response_Code.MP3_Artist_Name: this.events.emit('mp3:artist',  response); break;
+            case Response_Code.Firmware_V3:    this.events.emit('firmware',    response); break;
         }
     }
 

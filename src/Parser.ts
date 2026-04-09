@@ -139,10 +139,16 @@ export interface Response_Zone_Name {
     }
 }
 
+export interface Response_Firmware {
+    type: typeof Response_Code.Firmware_V3
+    firmware: string
+}
+
 export type LyncResponse = Response_Id | Response_Error | Response_Status | Response_Exist |
                            Response_Zone_Name | Response_Source_Name | Response_MP3_Artist |
                            Response_MP3_File | Response_MP3_Off | Response_MP3_On | Response_MP3_End |
-                           Response_Unhandled | Response_MP3_Repeat | Response_System
+                           Response_Unhandled | Response_MP3_Repeat | Response_System |
+                           Response_Firmware
 
 export default class Parser {
     static previous_result: Buffer;
@@ -196,6 +202,7 @@ export default class Parser {
                     case Response_Code.Zone_Source_Name: command_length = H + 13 + C; break;
                     case Response_Code.Zone_Name:        command_length = H + 13 + C; break;
                     case Response_Code.Source_Name:      command_length = H + 13 + C; break;
+                    case Response_Code.Firmware_V3:      command_length = H + 9  + C; break;
                     case Response_Code.MP3_File_Name:
                     case Response_Code.MP3_Artist_Name:
                         if (remaining_length <= 6) { // empty + checksum
@@ -267,6 +274,7 @@ export default class Parser {
             case Response_Code.Zone_Source_Name:    return Parser.handle_source_name(data);
             case Response_Code.Source_Name:         return Parser.handle_source_name(data);
             case Response_Code.Zone_Name:           return Parser.handle_zone_name(data);
+            case Response_Code.Firmware_V3:        return Parser.handle_firmware(data);
             default:                                return Parser.unhandled(data);
         }
     }
@@ -483,6 +491,13 @@ export default class Parser {
                 number: data.readUInt8(15),
                 name: data.subarray(4, data.length - 2).toString('ascii').split("\0").shift() || '' // start after header, end before space and checksum, stop at null
             }
+        }]
+    }
+
+    private static handle_firmware = (data: Buffer): [Response_Firmware] => {
+        return [{
+            type: Response_Code.Firmware_V3,
+            firmware: data.subarray(4, data.length - 1).toString('ascii').split("\0").shift() || ''
         }]
     }
 
