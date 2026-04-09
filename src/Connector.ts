@@ -53,7 +53,7 @@ export default class Connector {
         this.events = new TypedEventEmitter<EventTypes>();
         this.client.on('error', (error: Error) => this.events.emit('socket:error', error));
         this.client.on('data',  (data: Buffer) => {
-            Parser.parse(data).map((response: LyncResponse) => {
+            Parser.parse(data).forEach((response: LyncResponse) => {
                 this.emit_response(response);
             })
         });
