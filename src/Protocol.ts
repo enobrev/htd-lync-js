@@ -330,15 +330,15 @@ export default class Protocol {
     }
 
     // Developer Note: The docs say this resets a single zone name, but I'm seeing it reset all zones and sources
-    static reset_zone_names() {
+    static reset_zone_names(): Protocol {
         return new Protocol({command: Command.Set_Name_Default});
     }
 
-    static reset_zone_audio(zone: Zone) {
+    static reset_zone_audio(zone: Zone): Protocol {
         return new Protocol({command: Command.Set_Audio_Default, zone});
     }
 
-    static set_zone_name(zone: Zone, name: string) {
+    static set_zone_name(zone: Zone, name: string): Protocol {
         if (name.length > 10) {
             name = name.substring(0, 10);
         }
@@ -358,7 +358,7 @@ export default class Protocol {
 
     // FIXME: I'm unsure as of yet if data[0] should be 1-18 (per the docs) or the source hex
     // Doc Note: Each Zone has its own set of Source Names that can be set.
-    static set_zone_source_name(zone: Zone, source: Source, name: string) {
+    static set_zone_source_name(zone: Zone, source: Source, name: string): Protocol {
         if (name.length > 10) {
             name = name.substring(0, 10);
         }
